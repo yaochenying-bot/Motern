@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TAPD 排期告警面板</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; max-width: 860px; }
+      .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+      label { display: block; margin-bottom: 6px; font-weight: 600; }
+      input { width: 100%; margin-bottom: 12px; padding: 8px; }
+      button { background: #1677ff; color: #fff; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; }
+      pre { background: #f6f8fa; padding: 12px; border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>TAPD 团队日历 → 钉钉告警</h1>
+    <div class="card">
+      <label for="tapdApi">TAPD 团队日历 API</label>
+      <input id="tapdApi" placeholder="https://example.com/tapd/calendar" />
+
+      <label for="tapdToken">TAPD Token（可选）</label>
+      <input id="tapdToken" placeholder="Bearer Token" />
+
+      <label for="dingWebhook">钉钉机器人 Webhook</label>
+      <input id="dingWebhook" placeholder="https://oapi.dingtalk.com/robot/send?access_token=..." />
+
+      <label for="dingSecret">钉钉机器人 Secret（可选）</label>
+      <input id="dingSecret" placeholder="SEC..." />
+
+      <button id="checkBtn">立即检查并告警</button>
+    </div>
+
+    <div class="card">
+      <h3>结果</h3>
+      <pre id="result">等待执行...</pre>
+    </div>
+
+    <script>
+      const button = document.getElementById('checkBtn');
+      const result = document.getElementById('result');
+
+      button.addEventListener('click', async () => {
+        const payload = {
+          tapd_calendar_api: document.getElementById('tapdApi').value.trim(),
+          tapd_token: document.getElementById('tapdToken').value.trim(),
+          dingtalk_webhook: document.getElementById('dingWebhook').value.trim(),
+          dingtalk_secret: document.getElementById('dingSecret').value.trim(),
+        };
+
+        result.textContent = '执行中...';
+
+        try {
+          const response = await fetch('/api/check-alerts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          result.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          result.textContent = `请求失败: ${error}`;
+        }
+      });
+    </script>
+  </body>
+</html>
